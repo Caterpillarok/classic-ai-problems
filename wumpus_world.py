@@ -14,9 +14,12 @@ def get_adj(x, y):
 
 
 def logical_reasoning():
+
     safe = set(percepts)
+
     possible_pit = set()
     possible_wumpus = set()
+
     gold_location = None
     wumpus_location = None
 
@@ -30,14 +33,30 @@ def logical_reasoning():
         for sense, danger_set in [("B", possible_pit),
                                   ("S", possible_wumpus)]:
 
+            # No danger nearby
             if not p[sense]:
-                danger_set.difference_update(adj)
-                safe.update(c for c in adj if c not in percepts)
-            else:
-                danger_set.update(c for c in adj if c not in percepts)
 
+                for cell in adj:
+
+                    if cell in danger_set:
+                        danger_set.remove(cell)
+
+                    if cell not in percepts:
+                        safe.add(cell)
+
+            # Danger may exist nearby
+            else:
+
+                for cell in adj:
+
+                    if cell not in percepts:
+                        danger_set.add(cell)
+
+    # Exact Wumpus detection
     if len(possible_wumpus) == 1:
-        wumpus_location = next(iter(possible_wumpus))
+
+        for cell in possible_wumpus:
+            wumpus_location = cell
 
     return safe, possible_pit, possible_wumpus, wumpus_location, gold_location
 
@@ -57,9 +76,12 @@ print("Wumpus Location     :", w_loc)
 print("Gold Location       :", g_loc)
 
 print("\n--- Agent Decision ---")
+
 if g_loc:
     print("✅ Navigate to", g_loc, "to grab the Gold!")
+
 if w_loc:
     print("⚠️ Shoot arrow toward", w_loc)
+
 if pits:
     print("⚠️ Avoid", sorted(pits))
